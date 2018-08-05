@@ -36,7 +36,8 @@ var game = {
     ],
     slots: [],
     chars: [],
-    steps: []
+    current: false,
+    steps: 0,
 }
 
 function isPointInSlots(slots, x, y, horizontal) {
@@ -108,14 +109,50 @@ function findSlots() {
     }
 }
 
-function mouseClicked() {
-    var word = game.words.shift();
-    var slot = game.slots.shift();
-    game.steps.push({
+function createDecisionNode(parent) {
+    var wordIndex = (parent) ? parent.wordIndex + 1 : 0;
+    var word = game.words[wordIndex];
+    return {
         word: word,
-        slot: slot
-    });
-    writeInSlot(slot, word);
+        possibilities: game.slots.filter(function(slot) {
+            return word.length == slot.length
+        }).filter(function(slot) {
+            return canWriteInSlot(slot, word)
+        }),
+        wordIndex: wordIndex,
+        parent: parent,
+        choosen: false
+    }
+}
+
+function mouseClicked() {
+
+    if (!game.current) {
+        game.current = createDecisionNode(false);
+        game.root = game.current;
+    }
+
+    game.steps++;
+
+    var node = game.current;
+    if (node.possibilities.length) {
+        node.choosen = node.possibilities[0];
+        writeInSlot(node.choosen, node.word);
+        if (node.wordIndex == game.words.length - 1) {
+            console.log("done in", game.steps, "steps");
+        } else {
+            node.next = createDecisionNode(node);
+            game.current = node.next;    
+        }
+    } else {
+        // no future, back up
+        node.parent.possibilities.splice(node.parent.possibilities.indexOf(node.parent.choosen), 1);
+        node.parent.choosen = false;
+        game.current = node.parent;
+        game.chars = [];
+        replaySteps(game.root);
+    }
+
 }
 
 function writeInSlot(slot, word) {
@@ -128,6 +165,28 @@ function writeInSlot(slot, word) {
             y++;
         }
     });
+}
+
+function canWriteInSlot(slot, word) {
+    var x = slot.x, y = slot.y;
+    return word.split("").every(function(char) {
+        if (typeof(game.chars[y + "/" + x]) !== 'undefined' && game.chars[y + "/" + x] != char) {
+            return false;
+        }
+        if (slot.isHorizontal) {
+            x++;
+        } else {
+            y++;
+        }
+        return true;
+    });
+}
+
+function replaySteps(node) {
+    if (node.choosen) {
+        writeInSlot(node.choosen, node.word);
+        replaySteps(node.next);        
+    }
 }
 
 function draw() {
