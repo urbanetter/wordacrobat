@@ -67,7 +67,7 @@ function slotLength(maze, x, y, horizontal) {
 }
 
 function setup() {
-    createCanvas(540, 540)
+    createCanvas(541, 541)
     textSize(24)
     textAlign(CENTER)
 
@@ -192,8 +192,8 @@ function replaySteps(node) {
 function draw() {
     background(255);
 
-    var squareWidth = width / game.width;
-    var squareHeight = height / game.height;
+    var squareWidth = (width - 1) / game.width;
+    var squareHeight = (height - 1) / game.height;
 
     for (var y = 0; y < game.height; y++) {
         for (var x = 0; x < game.width; x++) {
