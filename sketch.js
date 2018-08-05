@@ -3,6 +3,7 @@
 var game = {
     width: 18,
     height: 18,
+    minWordLength: 4,
     maze: [
         [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
         [1,0,0,1,0,0,1,0,1,0,0,0,1,0,0,0,0,1],
@@ -36,8 +37,60 @@ var game = {
     slots: []
 }
 
+function isPointInSlots(slots, x, y) {
+    return slots.some(function(slot) {
+        return isPointInSlot(slot, x, y);
+    });
+}
+
+function isPointInSlot(slot, x, y) {
+    if (slot.isHorizontal) {
+        return slot.y == y && slot.x <= x && slot.x + slot.length >= x;
+    } else {
+        return slot.x == x && slot.y <= y && slot.y + slot.length >= y;
+    }
+}
+
+function slotLength(maze, x, y, horizontal) {
+    var length = 0;
+    if (horizontal) {
+        while (x + length < maze[y].length && maze[y][x + length] == 1) length++;
+    } else {
+        while (y + length < maze.length && maze[y + length][x] == 1) length++;
+    }
+    return length;
+}
+
 function setup() {
     createCanvas(540, 540)
+}
+
+function mouseClicked() {
+    // find horizontal slots
+    for (var y = 0; y < game.height; y++) {
+        for (var x = 0; x < game.width; x++) {
+            if (!isPointInSlots(game.slots, x, y)) {
+                var length = slotLength(game.maze, x, y, true);
+                if (length >= game.minWordLength) {
+                    game.slots.push({
+                        x: x,
+                        y: y,
+                        isHorizontal: true,
+                        length: length 
+                    })
+                }
+                var length = slotLength(game.maze, x, y, false);
+                if (length >= game.minWordLength) {
+                    game.slots.push({
+                        x: x,
+                        y: y,
+                        isHorizontal: false,
+                        length: length 
+                    })
+                }
+            }
+        }
+    }
 }
 
 function draw() {
