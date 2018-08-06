@@ -1,8 +1,10 @@
 
 
-var game = {
+var simple = {
     width: 18,
     height: 18,
+    canvasWidth: 540,
+    canvasHeight: 540,
     minWordLength: 4,
     maze: [
         [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1],
@@ -35,11 +37,47 @@ var game = {
         "saintphalle"
     ],
     slots: [],
-    charsDefault: [],
+    charsDefault: {},
     current: false,
     steps: 0,
     batch: 50,
 }
+
+var hard = {
+    width: 14,
+    height: 14,
+    canvasWidth: 560,
+    canvasHeight: 560,
+    minWordLength: 7,
+    maze: [
+        [0,0,1,1,1,1,1,1,1,0,0,0,0,0],
+        [0,0,1,0,1,0,1,0,0,0,0,0,0,0],
+        [1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+        [1,0,1,1,1,1,1,1,1,0,0,0,0,0],
+        [1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+        [1,0,1,1,1,1,1,1,1,0,1,0,0,0],
+        [1,1,1,1,1,1,1,0,1,0,1,0,0,1],
+        [1,0,0,1,0,1,0,1,1,1,1,1,1,1],
+        [1,0,0,1,0,1,1,1,1,1,1,1,0,1],
+        [0,0,0,0,0,0,0,1,1,1,1,1,1,1],
+        [0,0,0,0,0,1,1,1,1,1,1,1,0,1],
+        [0,0,0,0,0,0,0,1,1,1,1,1,1,1],
+        [0,0,0,0,0,0,0,1,0,1,0,1,0,1],
+        [0,0,0,0,0,1,1,1,1,1,1,1,0,0],
+    ],
+    words: [
+        "aerztin", "alraune", "antares", "ausfall", "austral", "aventin",
+        "beklagt", "benefiz", "buerste", "grantig", "hausrat", "hebamme",
+        "marilyn", "mausern", "mindern", "musisch", "parnger", "phaeake",
+        "rusalka", "satteln", "schauer", "spontan", "sprosse", "sprudel"
+    ],
+    slots: [],
+    charsDefault: {"4/0": "s"},
+    current: false,
+    steps: 0,
+    batch: 100000,
+}
+
 
 function isPointInSlots(slots, x, y, horizontal) {
     return slots.filter(function (slot) {
@@ -68,9 +106,12 @@ function slotLength(maze, x, y, horizontal) {
 }
 
 function setup() {
-    createCanvas(541, 541)
+    game = hard;
+
+    createCanvas(game.canvasWidth + 1, game.canvasHeight + 1)
     textSize(24)
     textAlign(CENTER)
+
 
     findSlots();
     game.slots.sort(function(a,b) {
@@ -80,7 +121,7 @@ function setup() {
         return b.length - a.length;
     });
 
-    game.chars = game.charsDefault.slice(0);
+    game.chars = Object.assign({}, game.charsDefault);
 }
 
 function findSlots() {
@@ -158,12 +199,12 @@ function mouseClicked() {
             node.parent.possibilities.splice(node.parent.possibilities.indexOf(node.parent.choosen), 1);
             node.parent.choosen = false;
             game.current = node.parent;
-            game.chars = game.charsDefault.slice(0);
+            game.chars = Object.assign({}, game.charsDefault);
             replaySteps(game.root);
         }
         step++;
     }
-
+    console.log("steps", game.steps);
 }
 
 function writeInSlot(slot, word) {
@@ -209,7 +250,9 @@ function draw() {
     for (var y = 0; y < game.height; y++) {
         for (var x = 0; x < game.width; x++) {
             if (game.maze[y][x] == 1) {
+                fill(230);
                 rect(x * squareWidth, y * squareHeight, squareWidth, squareHeight)
+                fill(0)
                 if (typeof(game.chars[y + "/" + x]) != 'undefined') {
                     text(game.chars[y + "/" + x].toUpperCase(), x * squareWidth + 15, y * squareHeight + squareHeight - 5)    
                 }                
