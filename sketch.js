@@ -35,7 +35,7 @@ var game = {
         "saintphalle"
     ],
     slots: [],
-    chars: [],
+    charsDefault: [],
     current: false,
     steps: 0,
     batch: 50,
@@ -79,6 +79,8 @@ function setup() {
     game.words.sort(function(a,b) {
         return b.length - a.length;
     });
+
+    game.chars = game.charsDefault.slice(0);
 }
 
 function findSlots() {
@@ -156,7 +158,7 @@ function mouseClicked() {
             node.parent.possibilities.splice(node.parent.possibilities.indexOf(node.parent.choosen), 1);
             node.parent.choosen = false;
             game.current = node.parent;
-            game.chars = [];
+            game.chars = game.charsDefault.slice(0);
             replaySteps(game.root);
         }
         step++;
