@@ -38,6 +38,7 @@ var game = {
     chars: [],
     current: false,
     steps: 0,
+    batch: 50,
 }
 
 function isPointInSlots(slots, x, y, horizontal) {
@@ -132,25 +133,33 @@ function mouseClicked() {
         game.root = game.current;
     }
 
-    game.steps++;
+    var step = 0;
 
-    var node = game.current;
-    if (node.possibilities.length) {
-        node.choosen = node.possibilities[0];
-        writeInSlot(node.choosen, node.word);
+    while (step < game.batch) {
+
+        var node = game.current;
+
         if (node.wordIndex == game.words.length - 1) {
             console.log("done in", game.steps, "steps");
-        } else {
+            return;
+        }
+
+        game.steps++;
+
+        if (node.possibilities.length) {
+            node.choosen = node.possibilities[0];
+            writeInSlot(node.choosen, node.word);
             node.next = createDecisionNode(node);
             game.current = node.next;    
+        } else {
+            // no future, back up
+            node.parent.possibilities.splice(node.parent.possibilities.indexOf(node.parent.choosen), 1);
+            node.parent.choosen = false;
+            game.current = node.parent;
+            game.chars = [];
+            replaySteps(game.root);
         }
-    } else {
-        // no future, back up
-        node.parent.possibilities.splice(node.parent.possibilities.indexOf(node.parent.choosen), 1);
-        node.parent.choosen = false;
-        game.current = node.parent;
-        game.chars = [];
-        replaySteps(game.root);
+        step++;
     }
 
 }
